@@ -7,6 +7,11 @@ const int NUM_ELEMENTS = 100;
 const int64_t MAX_VALUE = 1000000000000; // 10^12
 int64_t A[NUM_ELEMENTS];
 
+
+// for get_vars
+int max, maxidx, nextmax, nextmaxindx;
+
+
 // returns random integer in [1, 10^12]
 int64_t rand_number() {
     int64_t low = rand();
@@ -40,6 +45,48 @@ void read_numbers_from_file(char* file) {
     }
 }
 
+void get_max(int array[]) 
+{
+    
+    maxidx = -1;
+    nextmaxindx = -1;
+    max = 0;
+    nextmax = 0;
+
+    for (int i = 0; i < NUM_ELEMENTS; i++) 
+    {
+        if (array[i] > max) 
+        {
+            nextmax = max;
+            nextmaxindx = maxidx;
+            max = array[i];
+            maxidx = i;
+        } else if (array[i] > nextmax) 
+        {
+            nextmax = array[i];
+            nextmaxindx = i;
+        }
+    }
+}
+
+int KK(int array[]) 
+{
+    int residue = 0;
+    while (1) 
+    {
+        get_max(array);
+        if (nextmax == 0)
+        {
+            residue = max;
+            break;
+        }
+        residue = abs(max - nextmax);
+        array[nextmaxindx] = 0;
+        array[maxidx] = residue;
+    }
+    return residue;
+}
+
 // main function
 int main(int argc, char *argv[]) {
     srand(time(0));
@@ -59,6 +106,10 @@ int main(int argc, char *argv[]) {
         int write_file = 1;
         generate_rand_numbers(write_file);
     }
+
+    // test array
+    // int test[] = {10,15,0,6,5};
+    // printf("%d\n",KK(test));
 
     return 0;
 }
