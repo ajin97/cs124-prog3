@@ -1,5 +1,8 @@
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 using namespace std;
 
@@ -9,7 +12,7 @@ int64_t A[NUM_ELEMENTS];
 
 
 // for get_vars
-int max, maxidx, nextmax, nextmaxindx;
+int maxnum, maxidx, nextmax, nextmaxindx;
 
 
 // returns random integer in [1, 10^12]
@@ -50,16 +53,16 @@ void get_max(int array[])
     
     maxidx = -1;
     nextmaxindx = -1;
-    max = 0;
+    maxnum = 0;
     nextmax = 0;
 
     for (int i = 0; i < NUM_ELEMENTS; i++) 
     {
-        if (array[i] > max) 
+        if (array[i] > maxnum) 
         {
-            nextmax = max;
+            nextmax = maxnum;
             nextmaxindx = maxidx;
-            max = array[i];
+            maxnum = array[i];
             maxidx = i;
         } else if (array[i] > nextmax) 
         {
@@ -77,10 +80,10 @@ int KK(int array[])
         get_max(array);
         if (nextmax == 0)
         {
-            residue = max;
+            residue = maxnum;
             break;
         }
-        residue = abs(max - nextmax);
+        residue = abs(maxnum - nextmax);
         array[nextmaxindx] = 0;
         array[maxidx] = residue;
     }
