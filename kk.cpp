@@ -98,7 +98,7 @@ void new_rand_array (){
   
   int num;
 
-  for(int i = 0; i < 100; i++)
+  for (int i = 0; i < 100; i++)
   {
     int fnum = rand() % 2 ;
 
@@ -124,7 +124,7 @@ void new_rand_neighbor_array ()
   int j = rand() % 100 ;
 
   // to ensure that i != j
-  while(i == j)
+  while (i == j)
   {
     j = rand() % 100 ;
   }
@@ -142,11 +142,16 @@ void new_rand_neighbor_array ()
 int standard_residue(int array[])
 {
   int residue = 0;
-  for(int i = 0; i < 100; i++)
+  for (int i = 0; i < 100; i++)
   {
     residue = residue + (A[i] * array[i]);
   }
   return abs(residue);
+}
+
+float T (int iter)
+{
+  return (pow(10, 10) * pow(0.8, floor(iter/300) ));
 }
 
 void standard_solution()
@@ -156,7 +161,7 @@ void standard_solution()
   
   int val;
 
-  for(int i = 0; i < 100; i++)
+  for (int i = 0; i < 100; i++)
   {
     int fnum = rand() % 2 ;
 
@@ -180,12 +185,12 @@ void standard_solution()
 
   // Repeated random Residue
 
-  for(int i = 0; i < MAX_ITER; i++)
+  for (int i = 0; i < MAX_ITER; i++)
   {
     new_rand_array();
     int new_residue = standard_residue(Sarray);
 
-    if ( new_residue < initial_residue)
+    if (new_residue < initial_residue)
     {
       initial_residue = new_residue;
     }
@@ -201,7 +206,7 @@ void standard_solution()
   int temp_array[100];
 
   // init rand_neighbor_array and temp_array
-  for(int i = 0; i < 100; i++)
+  for (int i = 0; i < 100; i++)
   {
     rand_neighbor_array[i] = initial_Sarray[i];
     temp_array[i] = initial_Sarray[i];
@@ -209,23 +214,23 @@ void standard_solution()
 
   int neighbor_residue;
 
-  for(int i = 0; i < MAX_ITER; i++)
+  for (int i = 0; i < MAX_ITER; i++)
   {
     new_rand_neighbor_array();
     neighbor_residue = standard_residue(rand_neighbor_array);
 
-    if ( neighbor_residue < initial_residue)
+    if (neighbor_residue < initial_residue)
     {
       initial_residue = neighbor_residue;
       
-      for(int j = 0; j < 100; j++)
+      for (int j = 0; j < 100; j++)
       {
         temp_array[j] = rand_neighbor_array[j];
       }
       
     } else {
       
-      for(int j = 0; j < 100; j++)
+      for (int j = 0; j < 100; j++)
       {
         rand_neighbor_array[j] = temp_array[j]; 
       }
@@ -233,11 +238,74 @@ void standard_solution()
 
   }
 
-  printf("Standard Hill climbing Residue (25,000 iter) = %d\n", abs(initial_residue) );
+  printf("Standard Hill climbing Residue (25,000 iter) = %d\n", initial_residue );
 
   // Simulated annealing Reside
 
+  // reset initial residue
+  initial_residue = standard_residue(initial_Sarray);
+
+  // init rand_neighbor_array and temp_array
+  for (int i = 0; i < 100; i++)
+  {
+    rand_neighbor_array[i] = initial_Sarray[i];
+    temp_array[i] = initial_Sarray[i];
+  }
+
+  int temp2_residue;
+  temp2_residue = standard_residue(temp_array);
   
+  for (int i = 0; i < MAX_ITER; i++)
+  {
+    new_rand_neighbor_array();
+    neighbor_residue = standard_residue(rand_neighbor_array);
+
+    if (neighbor_residue < initial_residue)
+    {
+      initial_residue = neighbor_residue; // s = s'
+      
+      for (int j = 0; j < 100; j++)
+        {
+          temp_array[j] = rand_neighbor_array[j];
+        }
+
+    } else {
+      // THIS PROBABILITY IS 100% INCORRECT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      //bool TrueFalse = (rand() % 100) < 50;
+      // (exp((neighbor_residue - initial_residue) / i))
+
+       // printf("neighbor = %d\n", neighbor_residue );
+       // printf("initial. = %d\n", initial_residue );
+       // printf("sub..... = %d\n", neighbor_residue - initial_residue );
+       // printf("cool.... = %f\n", T(i) );
+       // printf("no exp.... = %f\n", (neighbor_residue - initial_residue) / T(i) );
+
+
+       //printf("prob = %f\n", (exp(-(neighbor_residue - initial_residue) / T(i))) );
+       float val = (exp(-(neighbor_residue - initial_residue) / T(i)));
+
+      if (val == 1)
+      {
+        initial_residue = neighbor_residue; // s = s'
+
+        for (int j = 0; j < 100; j++)
+        {
+          temp_array[j] = rand_neighbor_array[j];
+        }
+      } else {
+        for (int j = 0; j < 100; j++)
+        {
+          rand_neighbor_array[j] = temp_array[j]; 
+        }
+      }
+    }
+
+    if (initial_residue < temp2_residue)
+      temp2_residue = initial_residue;    // S'' = S
+  }
+
+  // return initial_residue
+  printf("Standard Simulated annealing Residue (25,000 iter) = %d\n", temp2_residue );
 
 }
 
@@ -266,9 +334,7 @@ int main(int argc, char *argv[]) {
     }
 
     standard_solution();
-    // test array
-    // int test[] = {10,15,0,6,5};
-    // printf("%d\n",KK(test));
+
 
     return 0;
 }
