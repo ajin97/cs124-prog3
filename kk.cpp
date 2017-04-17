@@ -154,56 +154,17 @@ float T (int iter)
   return (pow(10, 10) * pow(0.8, floor(iter/300) ));
 }
 
-void standard_solution()
+
+int initial_Sarray[100];
+int temp_array[100];
+int neighbor_residue;
+int initial_residue;
+int val;
+
+int standard_random()
 {
-    
-  int initial_Sarray[100];
-  
-  int val;
 
-  for (int i = 0; i < 100; i++)
-  {
-    int fnum = rand() % 2 ;
-
-    if (fnum > 0.5)
-    {
-      val = 1;
-    }
-    else{
-      val = -1;
-    }
-
-    initial_Sarray[i] = val;
-  }
-
-
-  new_rand_array();
-
-  int initial_residue = standard_residue(initial_Sarray);
-
-  printf("Standard Regular Residue = %d\n", initial_residue);
-
-  // Repeated random Residue
-
-  for (int i = 0; i < MAX_ITER; i++)
-  {
-    new_rand_array();
-    int new_residue = standard_residue(Sarray);
-
-    if (new_residue < initial_residue)
-    {
-      initial_residue = new_residue;
-    }
-  }
-
-  printf("Standard Repeated random Residue (25,000 iter) = %d\n", abs(initial_residue) );
-
-  // Hill climbing Residue
-
-  // reset initial residue
-  initial_residue = abs(standard_residue(initial_Sarray));
-
-  int temp_array[100];
+  int new_residue;
 
   // init rand_neighbor_array and temp_array
   for (int i = 0; i < 100; i++)
@@ -212,7 +173,44 @@ void standard_solution()
     temp_array[i] = initial_Sarray[i];
   }
 
-  int neighbor_residue;
+  for (int i = 0; i < MAX_ITER; i++)
+  {
+    new_rand_array();
+    new_residue = standard_residue(Sarray);
+
+    if (new_residue < initial_residue)
+    {
+      initial_residue = new_residue; // s = s'
+      for (int j = 0; j < 100; j++)
+      {
+        temp_array[j] = rand_neighbor_array[j];
+      }
+    } else 
+    {
+      for (int j = 0; j < 100; j++)
+      {
+        rand_neighbor_array[j] = temp_array[j];
+      }
+    }
+  }
+
+  // printf("Standard Repeated random Residue (25,000 iter) = %d\n", initial_residue );
+
+  return initial_residue;
+
+}
+
+int standard_hill()
+{
+  // reset initial residue
+  initial_residue = standard_residue(initial_Sarray);
+
+  // init rand_neighbor_array and temp_array
+  for (int i = 0; i < 100; i++)
+  {
+    rand_neighbor_array[i] = initial_Sarray[i];
+    temp_array[i] = initial_Sarray[i];
+  }
 
   for (int i = 0; i < MAX_ITER; i++)
   {
@@ -238,10 +236,13 @@ void standard_solution()
 
   }
 
-  printf("Standard Hill climbing Residue (25,000 iter) = %d\n", initial_residue );
+  // printf("Standard Hill climbing Residue (25,000 iter) = %d\n", initial_residue );
 
-  // Simulated annealing Reside
+  return initial_residue;
+}
 
+int standard_ann()
+{
   // reset initial residue
   initial_residue = standard_residue(initial_Sarray);
 
@@ -271,17 +272,6 @@ void standard_solution()
 
     } else {
       // THIS PROBABILITY IS 100% INCORRECT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      //bool TrueFalse = (rand() % 100) < 50;
-      // (exp((neighbor_residue - initial_residue) / i))
-
-       // printf("neighbor = %d\n", neighbor_residue );
-       // printf("initial. = %d\n", initial_residue );
-       // printf("sub..... = %d\n", neighbor_residue - initial_residue );
-       // printf("cool.... = %f\n", T(i) );
-       // printf("no exp.... = %f\n", (neighbor_residue - initial_residue) / T(i) );
-
-
-       //printf("prob = %f\n", (exp(-(neighbor_residue - initial_residue) / T(i))) );
        float val = (exp(-(neighbor_residue - initial_residue) / T(i)));
 
       if (val == 1)
@@ -305,8 +295,58 @@ void standard_solution()
   }
 
   // return initial_residue
-  printf("Standard Simulated annealing Residue (25,000 iter) = %d\n", temp2_residue );
+  // printf("Standard Simulated annealing Residue (25,000 iter) = %d\n", temp2_residue );
 
+  return temp2_residue;
+}
+
+
+void standard_solution()
+{
+
+  for (int i = 0; i < 100; i++)
+  {
+    int fnum = rand() % 2 ;
+
+    if (fnum > 0.5)
+    {
+      val = 1;
+    }
+    else{
+      val = -1;
+    }
+    initial_Sarray[i] = val;
+  }
+
+  new_rand_array();
+
+  initial_residue = standard_residue(initial_Sarray);
+
+  // printf("Standard Regular Residue = %d\n", initial_residue);
+
+  float avg_rand = 0;
+  float avg_hill = 0;
+  float avg_ann = 0;
+
+  for (int j = 0; j < 50; j++)
+  {
+    // Repeated random Residue
+    avg_rand = avg_rand + standard_random();
+
+    // Hill climbing Residue
+    avg_hill = avg_hill + standard_hill();
+
+    // Simulated annealing Reside
+    avg_ann = avg_ann + standard_ann();
+  }
+
+  avg_rand = avg_rand / 50;
+  avg_hill = avg_hill / 50;
+  avg_ann = avg_ann / 50;
+
+  printf("avg_rand  = %f\n", avg_rand );
+  printf("avg_hill  = %f\n", avg_hill );
+  printf("avg_ann.  = %f\n", avg_ann );
 }
 
 // main function
