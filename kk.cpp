@@ -7,6 +7,8 @@
 using namespace std;
 
 const int NUM_ELEMENTS = 100;
+// Should be at least 25,000
+const int MAX_ITER = 25000;
 const int64_t MAX_VALUE = 1000000000000; // 10^12
 int64_t A[NUM_ELEMENTS];
 
@@ -90,8 +92,161 @@ int KK(int array[])
     return residue;
 }
 
+int Sarray[100];
+
+void new_rand_array (){
+  
+  int num;
+
+  for(int i = 0; i < 100; i++)
+  {
+    int fnum = rand() % 2 ;
+
+    if (fnum > 0.5)
+    {
+      num = 1;
+    }
+    else{
+      num = -1;
+    }
+
+    Sarray[i] = num;
+  }
+}
+
+int rand_neighbor_array[100];
+
+// NOT SURE IF THIS IS CORRECT
+void new_rand_neighbor_array ()
+{
+  // generate new random neighbor array to original array
+  int i = rand() % 100 ;
+  int j = rand() % 100 ;
+
+  // to ensure that i != j
+  while(i == j)
+  {
+    j = rand() % 100 ;
+  }
+
+  int chance = rand() % 2 ;
+  if (chance == 1)
+    rand_neighbor_array[i] = -1 * rand_neighbor_array[i];
+
+  chance = rand() % 2 ;
+  if (chance == 1)
+    rand_neighbor_array[j] = -1 * rand_neighbor_array[j];
+
+}
+
+int standard_residue(int array[])
+{
+  int residue = 0;
+  for(int i = 0; i < 100; i++)
+  {
+    residue = residue + (A[i] * array[i]);
+  }
+  return abs(residue);
+}
+
+void standard_solution()
+{
+    
+  int initial_Sarray[100];
+  
+  int val;
+
+  for(int i = 0; i < 100; i++)
+  {
+    int fnum = rand() % 2 ;
+
+    if (fnum > 0.5)
+    {
+      val = 1;
+    }
+    else{
+      val = -1;
+    }
+
+    initial_Sarray[i] = val;
+  }
+
+
+  new_rand_array();
+
+  int initial_residue = standard_residue(initial_Sarray);
+
+  printf("Standard Regular Residue = %d\n", initial_residue);
+
+  // Repeated random Residue
+
+  for(int i = 0; i < MAX_ITER; i++)
+  {
+    new_rand_array();
+    int new_residue = standard_residue(Sarray);
+
+    if ( new_residue < initial_residue)
+    {
+      initial_residue = new_residue;
+    }
+  }
+
+  printf("Standard Repeated random Residue (25,000 iter) = %d\n", abs(initial_residue) );
+
+  // Hill climbing Residue
+
+  // reset initial residue
+  initial_residue = abs(standard_residue(initial_Sarray));
+
+  int temp_array[100];
+
+  // init rand_neighbor_array and temp_array
+  for(int i = 0; i < 100; i++)
+  {
+    rand_neighbor_array[i] = initial_Sarray[i];
+    temp_array[i] = initial_Sarray[i];
+  }
+
+  int neighbor_residue;
+
+  for(int i = 0; i < MAX_ITER; i++)
+  {
+    new_rand_neighbor_array();
+    neighbor_residue = standard_residue(rand_neighbor_array);
+
+    if ( neighbor_residue < initial_residue)
+    {
+      initial_residue = neighbor_residue;
+      
+      for(int j = 0; j < 100; j++)
+      {
+        temp_array[j] = rand_neighbor_array[j];
+      }
+      
+    } else {
+      
+      for(int j = 0; j < 100; j++)
+      {
+        rand_neighbor_array[j] = temp_array[j]; 
+      }
+    }
+
+  }
+
+  printf("Standard Hill climbing Residue (25,000 iter) = %d\n", abs(initial_residue) );
+
+  // Simulated annealing Reside
+
+  
+
+}
+
 // main function
 int main(int argc, char *argv[]) {
+
+   /* initialize random seed: */
+  srand (time(NULL));
+
     srand(time(0));
     if (argc != 1 && argc != 2) {
         cout << "Usage: ./kk inputfile" << endl;
@@ -110,6 +265,7 @@ int main(int argc, char *argv[]) {
         generate_rand_numbers(write_file);
     }
 
+    standard_solution();
     // test array
     // int test[] = {10,15,0,6,5};
     // printf("%d\n",KK(test));
