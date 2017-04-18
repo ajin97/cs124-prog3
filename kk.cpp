@@ -1,21 +1,13 @@
 #include <iostream>
 #include <fstream>
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 
 using namespace std;
 
-const int NUM_ELEMENTS = 100;
-// Should be at least 25,000
 const int MAX_ITER = 25000;
+const int NUM_ELEMENTS = 100;
 const int64_t MAX_VALUE = 1000000000000; // 10^12
 int64_t A[NUM_ELEMENTS];
-
-
-// for get_vars
-int maxnum, maxidx, nextmax, nextmaxindx;
-
 
 // returns random integer in [1, 10^12]
 int64_t rand_number() {
@@ -50,311 +42,288 @@ void read_numbers_from_file(char* file) {
     }
 }
 
-void get_max(int array[]) 
-{
-    
-    maxidx = -1;
-    nextmaxindx = -1;
-    maxnum = 0;
-    nextmax = 0;
-
-    for (int i = 0; i < NUM_ELEMENTS; i++) 
-    {
-        if (array[i] > maxnum) 
-        {
-            nextmax = maxnum;
-            nextmaxindx = maxidx;
-            maxnum = array[i];
-            maxidx = i;
-        } else if (array[i] > nextmax) 
-        {
-            nextmax = array[i];
-            nextmaxindx = i;
+// generate random standard solution
+int* generate_rand_sol_standard() {
+    int* S = (int*) malloc(sizeof(int) * NUM_ELEMENTS);
+    for (int i = 0; i < NUM_ELEMENTS; i++) {
+        int rand_num = rand() % 2;
+        if (rand_num == 0) {
+            S[i] = 1;
+        } else {
+            S[i] = -1;
         }
     }
+    return S;
 }
 
-int KK(int array[]) 
-{
-    int residue = 0;
-    while (1) 
-    {
-        get_max(array);
-        if (nextmax == 0)
-        {
-            residue = maxnum;
-            break;
-        }
-        residue = abs(maxnum - nextmax);
-        array[nextmaxindx] = 0;
-        array[maxidx] = residue;
+// generate random pre-partitioning solution
+int* generate_rand_sol_pp() {
+    int* P = (int*) malloc(sizeof(int) * NUM_ELEMENTS);
+    for (int i = 0; i < NUM_ELEMENTS; i++) {
+        P[i] = rand() % NUM_ELEMENTS;
     }
-    return residue;
+    return P;
 }
 
-int Sarray[100];
-
-void new_rand_array (){
-  
-  int num;
-
-  for (int i = 0; i < 100; i++)
-  {
-    int fnum = rand() % 2 ;
-
-    if (fnum > 0.5)
-    {
-      num = 1;
-    }
-    else{
-      num = -1;
+// generates random neighbor S' of S
+int* generate_rand_neighbor_standard(int* S) {
+    int* S_prime = (int*) malloc(sizeof(int) * NUM_ELEMENTS);
+    for (int k = 0; k < NUM_ELEMENTS; k++) {
+        S_prime[k] = S[k];
     }
 
-    Sarray[i] = num;
-  }
-}
-
-int rand_neighbor_array[100];
-
-// NOT SURE IF THIS IS CORRECT
-void new_rand_neighbor_array ()
-{
-  // generate new random neighbor array to original array
-  int i = rand() % 100 ;
-  int j = rand() % 100 ;
-
-  // to ensure that i != j
-  while (i == j)
-  {
-    j = rand() % 100 ;
-  }
-
-  int chance = rand() % 2 ;
-  if (chance == 1)
-    rand_neighbor_array[i] = -1 * rand_neighbor_array[i];
-
-  chance = rand() % 2 ;
-  if (chance == 1)
-    rand_neighbor_array[j] = -1 * rand_neighbor_array[j];
-
-}
-
-int standard_residue(int array[])
-{
-  int residue = 0;
-  for (int i = 0; i < 100; i++)
-  {
-    residue = residue + (A[i] * array[i]);
-  }
-  return abs(residue);
-}
-
-float T (int iter)
-{
-  return (pow(10, 10) * pow(0.8, floor(iter/300) ));
-}
-
-
-int initial_Sarray[100];
-int temp_array[100];
-int neighbor_residue;
-int initial_residue;
-int val;
-
-int standard_random()
-{
-
-  int new_residue;
-
-  // init rand_neighbor_array and temp_array
-  for (int i = 0; i < 100; i++)
-  {
-    rand_neighbor_array[i] = initial_Sarray[i];
-    temp_array[i] = initial_Sarray[i];
-  }
-
-  for (int i = 0; i < MAX_ITER; i++)
-  {
-    new_rand_array();
-    new_residue = standard_residue(Sarray);
-
-    if (new_residue < initial_residue)
-    {
-      initial_residue = new_residue; // s = s'
-      for (int j = 0; j < 100; j++)
-      {
-        temp_array[j] = rand_neighbor_array[j];
-      }
-    } else 
-    {
-      for (int j = 0; j < 100; j++)
-      {
-        rand_neighbor_array[j] = temp_array[j];
-      }
-    }
-  }
-
-  // printf("Standard Repeated random Residue (25,000 iter) = %d\n", initial_residue );
-
-  return initial_residue;
-
-}
-
-int standard_hill()
-{
-  // reset initial residue
-  initial_residue = standard_residue(initial_Sarray);
-
-  // init rand_neighbor_array and temp_array
-  for (int i = 0; i < 100; i++)
-  {
-    rand_neighbor_array[i] = initial_Sarray[i];
-    temp_array[i] = initial_Sarray[i];
-  }
-
-  for (int i = 0; i < MAX_ITER; i++)
-  {
-    new_rand_neighbor_array();
-    neighbor_residue = standard_residue(rand_neighbor_array);
-
-    if (neighbor_residue < initial_residue)
-    {
-      initial_residue = neighbor_residue;
-      
-      for (int j = 0; j < 100; j++)
-      {
-        temp_array[j] = rand_neighbor_array[j];
-      }
-      
-    } else {
-      
-      for (int j = 0; j < 100; j++)
-      {
-        rand_neighbor_array[j] = temp_array[j]; 
-      }
+    int i = rand() % NUM_ELEMENTS;
+    int j = rand() % NUM_ELEMENTS;
+    while (i == j) {
+        j = rand() % NUM_ELEMENTS;
     }
 
-  }
+    S_prime[i] *= -1;
+    int rand_num = rand() % 2;
+    if (rand_num == 0) {
+        S_prime[j] *= -1;
+    }
 
-  // printf("Standard Hill climbing Residue (25,000 iter) = %d\n", initial_residue );
-
-  return initial_residue;
+    return S_prime;
 }
 
-int standard_ann()
-{
-  // reset initial residue
-  initial_residue = standard_residue(initial_Sarray);
+// generates random neighbor P' of P
+int* generate_rand_neighbor_pp(int* P) {
+    int* P_prime = (int*) malloc(sizeof(int) * NUM_ELEMENTS);
+    for (int i = 0; i < NUM_ELEMENTS; i++) {
+        P_prime[i] = P[i];
+    }
+    int rand_i = rand() % NUM_ELEMENTS;
+    int rand_j = rand() % NUM_ELEMENTS;
+    while (P_prime[rand_i] == rand_j) {
+        rand_i = rand() % NUM_ELEMENTS;
+        rand_j = rand() % NUM_ELEMENTS;
+    }
+    P_prime[rand_i] = rand_j;
+    return P_prime;
+}
 
-  // init rand_neighbor_array and temp_array
-  for (int i = 0; i < 100; i++)
-  {
-    rand_neighbor_array[i] = initial_Sarray[i];
-    temp_array[i] = initial_Sarray[i];
-  }
+// perform KK heuristic algorithm on array arr
+int64_t kk_alg(int64_t* arr) {
+    int64_t biggest = 0;
+    int biggest_idx = -1;
+    int64_t second_biggest = 0;
+    int second_biggest_idx = -1;
+    int flag = 1;
 
-  int temp2_residue;
-  temp2_residue = standard_residue(temp_array);
-  
-  for (int i = 0; i < MAX_ITER; i++)
-  {
-    new_rand_neighbor_array();
-    neighbor_residue = standard_residue(rand_neighbor_array);
+    while (flag) {
+        biggest = 0;
+        biggest_idx = -1;
+        second_biggest = 0;
+        second_biggest_idx = -1;
 
-    if (neighbor_residue < initial_residue)
-    {
-      initial_residue = neighbor_residue; // s = s'
-      
-      for (int j = 0; j < 100; j++)
-        {
-          temp_array[j] = rand_neighbor_array[j];
+        // find two biggest elements
+        for (int i = 0; i < NUM_ELEMENTS; i++) {
+            if (arr[i] >= biggest) {
+                second_biggest = biggest;
+                second_biggest_idx = biggest_idx;
+                biggest = arr[i];
+                biggest_idx = i;
+            } else if (arr[i] > second_biggest) {
+                second_biggest = arr[i];
+                second_biggest_idx = i;
+            }
         }
 
-    } else {
-      // THIS PROBABILITY IS 100% INCORRECT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       float val = (exp(-(neighbor_residue - initial_residue) / T(i)));
+        arr[biggest_idx] = biggest - second_biggest;
+        arr[second_biggest_idx] = 0;
 
-      if (val == 1)
-      {
-        initial_residue = neighbor_residue; // s = s'
-
-        for (int j = 0; j < 100; j++)
-        {
-          temp_array[j] = rand_neighbor_array[j];
+        if (second_biggest == 0) {
+            flag = 0;
         }
-      } else {
-        for (int j = 0; j < 100; j++)
-        {
-          rand_neighbor_array[j] = temp_array[j]; 
-        }
-      }
     }
 
-    if (initial_residue < temp2_residue)
-      temp2_residue = initial_residue;    // S'' = S
-  }
-
-  // return initial_residue
-  // printf("Standard Simulated annealing Residue (25,000 iter) = %d\n", temp2_residue );
-
-  return temp2_residue;
+    return biggest;
 }
 
-
-void standard_solution()
-{
-
-  for (int i = 0; i < 100; i++)
-  {
-    int fnum = rand() % 2 ;
-
-    if (fnum > 0.5)
-    {
-      val = 1;
+// calculate residue on standard representation S
+int64_t calc_residue_standard(int* S) {
+    int64_t residue = 0;
+    for (int i = 0; i < NUM_ELEMENTS; i++) {
+        residue += A[i] * S[i];
     }
-    else{
-      val = -1;
+    return llabs(residue);
+}
+
+// calculate residue on pre-partition P using KK
+int64_t calc_residue_pp(int* P) {
+    // derive new sequence A' from A
+    int64_t* A_prime = (int64_t*) calloc(NUM_ELEMENTS, sizeof(int64_t));
+    for (int i = 0; i < NUM_ELEMENTS; i++) {
+        A_prime[P[i]] += A[i];
     }
-    initial_Sarray[i] = val;
-  }
+    // run the KK heuristic algorithm on the result A'
+    int64_t res = kk_alg(A_prime);
+    free(A_prime);
+    return res;
+}
 
-  new_rand_array();
+int* copy_P(int* P) {
+    int* P_copy = (int*) malloc(sizeof(int) * NUM_ELEMENTS);
+    for (int i = 0; i < NUM_ELEMENTS; i++) {
+        P_copy[i] = P[i];
+    }
+    return P_copy;
+}
 
-  initial_residue = standard_residue(initial_Sarray);
+/*
+// repeatedly generate random solutions to the problem
+int64_t repeated_random_pp() {
+    int* P = generate_rand_sol_pp();
+    for (int i = 0; i < MAX_ITER; i++) {
+        int* P_prime = generate_rand_sol_pp();
+        if (calc_residue_pp(P_prime) < calc_residue_pp(P)) {
+            free(P);
+            P = copy_P(P_prime);
+        } else {
+            free(P_prime);
+        }
+    }
+    int64_t best_residue = calc_residue_pp(P);
+    free(P);
+    return best_residue;
+}
+*/
 
-  // printf("Standard Regular Residue = %d\n", initial_residue);
+// repeatedly generate random solutions to the problem
+int64_t repeated_random_pp() {
+    int* P = generate_rand_sol_pp();
+    int64_t best_residue = calc_residue_pp(P);
+    free(P);
+    for (int i = 0; i < MAX_ITER; i++) {
+        P = generate_rand_sol_pp();
+        int64_t curr_residue = calc_residue_pp(P);
+        if (curr_residue < best_residue) {
+            best_residue = curr_residue;
+        }
+        free(P);
+    }
+    return best_residue;
+}
 
-  float avg_rand = 0;
-  float avg_hill = 0;
-  float avg_ann = 0;
+int64_t repeated_random_standard() {
+    int* S = generate_rand_sol_standard();
+    int64_t best_residue = calc_residue_standard(S);
+    free(S);
+    for (int i = 0; i < MAX_ITER; i++) {
+        S = generate_rand_sol_standard();
+        int64_t curr_residue = calc_residue_standard(S);
+        if (curr_residue < best_residue) {
+            best_residue = curr_residue;
+        }
+        free(S);
+    }
+    return best_residue;
+}
 
-  for (int j = 0; j < 50; j++)
-  {
-    // Repeated random Residue
-    avg_rand = avg_rand + standard_random();
+// hill climbing
+int64_t hill_climbing_pp() {
+    int* P = generate_rand_sol_pp();
+    for (int i = 0; i < MAX_ITER; i++) {
+        int* P_prime = generate_rand_neighbor_pp(P);
+        if (calc_residue_pp(P_prime) < calc_residue_pp(P)) {
+            free(P);
+            P = copy_P(P_prime);
+        } else {
+            free(P_prime);
+        }
+    }
+    int64_t best_residue = calc_residue_pp(P);
+    free(P);
+    return best_residue;
+}
 
-    // Hill climbing Residue
-    avg_hill = avg_hill + standard_hill();
+int64_t hill_climbing_standard() {
+    int* S = generate_rand_sol_standard();
+    for (int i = 0; i < MAX_ITER; i++) {
+        int* S_prime = generate_rand_neighbor_standard(S);
+        if (calc_residue_standard(S_prime) < calc_residue_standard(S)) {
+            free(S);
+            S = copy_P(S_prime);
+        } else {
+            free(S_prime);
+        }
+    }
+    int64_t best_residue = calc_residue_standard(S);
+    free(S);
+    return best_residue;
+}
 
-    // Simulated annealing Reside
-    avg_ann = avg_ann + standard_ann();
-  }
+// get probability for simulated annealing
+float get_prob(int64_t res_P_pr, int64_t res_P, int iter) {
+    float T_iter = pow(10.0, 10.0) * pow(0.8, floor(iter / 300.0));
+    float prob = exp(-1.0 * (res_P_pr - res_P) / T_iter);
+    return prob;
+}
 
-  avg_rand = avg_rand / 50;
-  avg_hill = avg_hill / 50;
-  avg_ann = avg_ann / 50;
+// simulated annealing
+int64_t simulated_annealing_standard() {
+    int* S = generate_rand_sol_standard();
+    int64_t best_residue = calc_residue_standard(S);
+    for (int i = 0; i < MAX_ITER; i++) {
+        int* S_prime = generate_rand_neighbor_standard(S);
+        int64_t res_S_prime = calc_residue_standard(S_prime);
+        int64_t res_S = calc_residue_standard(S);
+        if (res_S_prime < res_S) {
+            free(S);
+            S = copy_P(S_prime);
+        } else {
+            float prob = get_prob(res_S_prime, res_S, i);
+            float random = ((float) rand()) / ((float) RAND_MAX);
+            if (random < prob) {
+                free(S);
+                S = copy_P(S_prime);
+            } else {
+                free(S_prime);
+            }
+        }
 
-  printf("avg_rand  = %f\n", avg_rand );
-  printf("avg_hill  = %f\n", avg_hill );
-  printf("avg_ann.  = %f\n", avg_ann );
+        int64_t curr_residue = calc_residue_standard(S);
+        if (curr_residue < best_residue) {
+            best_residue = curr_residue;
+        }
+    }
+    free(S);
+    return best_residue;
+}
+
+int64_t simulated_annealing_pp() {
+    int* P = generate_rand_sol_pp();
+    int64_t best_residue = calc_residue_pp(P);
+    for (int i = 0; i < MAX_ITER; i++) {
+        int* P_prime = generate_rand_neighbor_pp(P);
+        int64_t res_P_prime = calc_residue_pp(P_prime);
+        int64_t res_P = calc_residue_pp(P);
+        if (res_P_prime < res_P) {
+            free(P);
+            P = copy_P(P_prime);
+        } else {
+            float prob = get_prob(res_P_prime, res_P, i);
+            float random = ((float) rand()) / ((float) RAND_MAX);
+            if (random < prob) {
+                free(P);
+                P = copy_P(P_prime);
+            } else {
+                free(P_prime);
+            }
+        }
+
+        int64_t curr_residue = calc_residue_pp(P);
+        if (curr_residue < best_residue) {
+            best_residue = curr_residue;
+        }
+    }
+    free(P);
+    return best_residue;
 }
 
 // main function
 int main(int argc, char *argv[]) {
-
-   /* initialize random seed: */
-  srand (time(NULL));
-
     srand(time(0));
     if (argc != 1 && argc != 2) {
         cout << "Usage: ./kk inputfile" << endl;
@@ -366,15 +335,19 @@ int main(int argc, char *argv[]) {
         input_file = argv[1];
     }
 
+    /*
     if (input_file) {
         read_numbers_from_file(input_file);
     } else {
         int write_file = 1;
         generate_rand_numbers(write_file);
     }
+    */
 
-    standard_solution();
-
+    for (int i = 0; i < 100; i++) {
+        generate_rand_numbers(0);
+        cout << simulated_annealing_standard() << endl;
+    }
 
     return 0;
 }
